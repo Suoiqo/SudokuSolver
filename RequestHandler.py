@@ -1,12 +1,14 @@
-import _socket
 import os
 import http.server
 import cgi
-import queue
+import json
+import socket
 
+class RequestHandler(http.server.BaseHTTPRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.answer_dat = None  # Inicjalizacja zmiennej answer_data
 
-class RequestHandler(http.server.SimpleHTTPRequestHandler):
-    
     def do_GET(self):
         if self.path == '/':
             self.send_response(200)
@@ -38,11 +40,25 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
             if ctype == 'multipart/form-data':
                 try:
                     fields = cgi.parse_multipart(self.rfile, pdict)
-                    print(fields)
-                except:
-                    pass
-        
-        self.send_response(301)
-        self.send_header("Content-Type", "text/html; charset=utf-8")
-        self.send_header('Location', '/')
-        self.end_headers()
+                    self.server.web_output_queue.put(fields)
+                except Exception as e:
+                    print('Błąd pobierania danych!')
+                    print('Kod błędu - ', e)
+            #testowe do poprawienia
+            while True:
+                answer = self.server.web_input_queue.get()
+                if answer:
+                    self.send_response(200)
+                    self.send_header("Content-Type", "text/html; charset=utf-8")
+                    self.end_headers()
+
+                    doc = 'website/answer.html'
+
+                    with open(doc, 'r') as f:
+                        page_content = f.read()
+
+                    page_content = page_content.replace('<!-- INSERT_ANSWER_HERE -->', str(answer))
+                    self.wfile.write(page_content.encode())
+                    break
+                else:
+                    continue

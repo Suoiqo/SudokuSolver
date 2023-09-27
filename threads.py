@@ -1,23 +1,32 @@
-from collections.abc import Callable, Iterable, Mapping
 import threading
 import socketserver
+from RequestHandler import RequestHandler
 import queue
 import http.server
-from typing import Any
-from RequestHandler import RequestHandler
+
+class QueuingTCPServer(socketserver.TCPServer):
+    def __init__(self, server_address, RequestHandlerClass, web_output_queue, web_input_queue, bind_and_activate=True):
+        socketserver.TCPServer.__init__(self, server_address, RequestHandlerClass, bind_and_activate)
+        self.web_output_queue = web_output_queue
+        self.web_input_queue = web_input_queue
 
 class WebWorker(threading.Thread):
-    def __init__(self, port):
+    def __init__(self, port, web_output_queue, web_input_queue):
         super().__init__()
         self.port = port
-        #self.q_output = q_output
         self.Handler = RequestHandler
-    
+        self.web_output_queue = web_output_queue
+        self.web_input_queue = web_input_queue
+
     def run(self):
-        with socketserver.TCPServer(("", self.port), self.Handler) as httpd:
+        with QueuingTCPServer(("", self.port), self.Handler, self.web_output_queue, self.web_input_queue) as server:
             print("Http Server Serving at port", self.port)
-            httpd.serve_forever()
+            server.serve_forever()
+
 
 
 def init_threads():
-    web_worker = WebWorker(8000).start()
+    web_output_queue = queue.Queue()
+    web_input_queue = queue.Queue()
+    web_worker = WebWorker(8000, web_output_queue, web_input_queue).start()
+    return web_output_queue, web_input_queue
