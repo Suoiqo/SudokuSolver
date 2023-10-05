@@ -76,7 +76,7 @@ class SudokuSolver():
             #Some sudoku boards cannot ve solved using backtracking method or initial values are in wrong positions
             if licznik >= 500000 or position < 0:
                 print(licznik)
-                return ''
+                return 'Error'
             
             #Check if current position is not in self.qluese and increse cell value if value in cell is less then 9
             if self.board_keys[position] not in self.qlues:

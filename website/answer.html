@@ -32,8 +32,11 @@
         </nav>
         
         <!--Main sudoku board with imputs-->
-        <div class="sudoku_answer">
+        <div class="sudoku_answer" style="display: none;">
                 
+        </div>
+        <div class="sudoku_error" style="display: none; text-align: center; border-top: 25px;">
+                <h1>Failed to solve sudoku</h1>
         </div>
 
         <div class="submitDiv"> 
@@ -49,16 +52,19 @@
     <script>
         function displayAnswer(){
             var answer = <!-- INSERT_ANSWER_HERE -->;
-            if (answer != ''){
+            if (answer != Error){
+                let sudoku_table = document.getElementsByClassName('sudoku_answer')[0];
+                sudoku_table.style.display = 'block';
                 for (let k in answer){
                     let tabele_cell = document.getElementsByName(k)[0];
                     tabele_cell.textContent = answer[k];
                 }
-            }else{
-                alert('Failed to solve sudoku!')
+            }else {
+                let sudoku_error = document.getElementsByClassName('sudoku_error')[0];
+                sudoku_error.style.display = 'block';
             }
         }
-        setTimeout(displayAnswer, 500)
+        setTimeout(displayAnswer, 1000)
     </script>
 
 </html>
